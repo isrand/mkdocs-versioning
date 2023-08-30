@@ -27,10 +27,9 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@github.com
 
-          git pull -s merge origin page
-          git push --force
-
           git pull origin development
+          git rebase --reapply-cherry-picks
+          git push --force
 
           pip3 install mkdocs
 
