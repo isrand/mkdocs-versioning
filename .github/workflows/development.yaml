@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   sync-page-branch:
-    needs: bump-version
+
     if: github.event.pull_request.merged == true
     environment:
       name: github-pages
