@@ -46,7 +46,8 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@github.com
-
+          git config pull.rebase true
+          
           git pull origin main
           git rebase --reapply-cherry-picks
 
@@ -65,17 +66,6 @@ jobs:
           token: ${{ secrets.SYNC_TOKEN }}
       - name: Create and push documentation
         run: |
-          git config user.name github-actions[bot]
-          git config user.email github-actions[bot]@github.com
-          
-          git pull origin page
-          git push --force
-
-          git config pull.rebase true
-          git pull origin main --allow-unrelated-histories
-
-          git push --force
-
           pip3 install mkdocs
           
           cd mkdocs;
@@ -111,6 +101,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@github.com
+          git config pull.rebase true
 
           git pull origin main
           git rebase --reapply-cherry-picks
