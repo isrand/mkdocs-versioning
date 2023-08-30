@@ -26,9 +26,9 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@github.com
+          git config pull.rebase false
 
           git pull origin development
-          git rebase --reapply-cherry-picks
           git push --force
 
           pip3 install mkdocs
