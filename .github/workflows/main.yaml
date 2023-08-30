@@ -47,8 +47,10 @@ jobs:
           git config user.email github-actions[bot]@github.com
           git config pull.rebase false
           
+          git pull origin page --allow-unrelated-histories
+          git push --force
+          
           git pull origin main --allow-unrelated-histories
-
           git push --force
   publish-docs:
     needs: sync-page-branch
