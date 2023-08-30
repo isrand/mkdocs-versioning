@@ -1,0 +1,14 @@
+site_name: MkDocs Versioning
+repo_url: https://github.com/isrand/mkdocs-versioning
+extra_css:
+    - css/css.css
+nav:
+    - Home: index.md
+theme:
+  name: readthedocs
+  prev_next_buttons_location: hidden
+  titles_only: false
+  site_name: MkDocs Versioning
+  include_homepage_in_sidebar: true
+extra:
+  version: !ENV VERSION

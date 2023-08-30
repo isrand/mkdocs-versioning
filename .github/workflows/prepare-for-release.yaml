@@ -1,0 +1,31 @@
+name: main
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-for-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: bahmutov/npm-install@v1
+      - name: Check for changelog
+        run: |
+          VERSION=$(npm --no-git-tag-version version minor | sed 's/^.//')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          git checkout -- package.json
+          npm run getChangelog v$VERSION
+          FILE=./CHANGELOG_v$VERSION.md
+
+          if test -f "$FILE"; then
+            echo "FOUND=1" >> $GITHUB_ENV
+          else
+            echo "FOUND=0" >> $GITHUB_ENV
+          fi
+      - name: Fail if changelog not found
+        if: ${{ env.FOUND == 0 }}
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('Changelog for (v${{ env.VERSION}}) not found. Please add it to the CHANGELOG.md file.')

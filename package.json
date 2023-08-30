@@ -1,0 +1,16 @@
+{
+  "name": "hedera-connector",
+  "version": "0.2.0",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "buildDocs": "node utils/docs/build-docs.js",
+    "getChangelog": "node utils/markdown/get-changelog.js"
+  },
+  "dependencies": {
+    "markdown-it": "13.0.1",
+    "turndown": "7.1.2"
+  }
+}

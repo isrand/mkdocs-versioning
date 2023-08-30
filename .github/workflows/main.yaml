@@ -1,0 +1,144 @@
+name: main
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+
+permissions:
+
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  bump-version:
+    if: github.event.pull_request.merged == true
+    environment:
+      name: github-actions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.SYNC_TOKEN }}
+      - name: Bump version
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@github.com
+
+          npm version minor
+          git push --force
+  sync-page-branch:
+    needs: bump-version
+    if: github.event.pull_request.merged == true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'page'
+          token: ${{ secrets.SYNC_TOKEN }}
+      - name: Synchronise "page" with latest version
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@github.com
+
+          git config pull.rebase true
+          git pull origin main
+
+          git push --force
+  publish-docs:
+    needs: sync-page-branch
+    if: github.event.pull_request.merged == true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'page'
+          token: ${{ secrets.SYNC_TOKEN }}
+      - name: Create and push documentation
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@github.com
+          
+          git config pull.rebase true
+          git pull origin main --allow-unrelated-histories
+
+          git push --force
+
+          pip3 install mkdocs
+          
+          cd mkdocs;
+          for val in $(mkdocs get-deps); do pip3 install $val; done
+          cd ..
+          
+          npm run buildDocs $(cat package.json | jq -r .version)
+          
+          git add mkdocs docs
+          git commit -m "Update documentation page"
+          git push --force
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: './docs'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+  sync-development-branch:
+    needs: bump-version
+    if: github.event.pull_request.merged == true
+    environment:
+      name: github-actions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'development'
+          token: ${{ secrets.SYNC_TOKEN }}
+      - name: Synchronise "development" with latest release
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@github.com
+
+          git config pull.rebase true
+          git pull origin main
+
+          git push --force
+  release:
+    needs: bump-version
+    if: github.event.pull_request.merged == true
+    environment:
+      name: github-actions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.SYNC_TOKEN }}
+      - uses: bahmutov/npm-install@v1
+      - name: Get new version from package.json
+        run: |
+          echo "VERSION=$(cat package.json | jq -r .version)" >> $GITHUB_ENV
+      - name: Get changelog for v${{ env.VERSION }}
+        run: |
+          npm run getChangelog v${{ env.VERSION }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: v${{ env.VERSION }}
+          body_path: ./CHANGELOG_v${{ env.VERSION }}.md
+          draft: false
+          prerelease: false
