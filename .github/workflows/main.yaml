@@ -66,6 +66,8 @@ jobs:
           token: ${{ secrets.SYNC_TOKEN }}
       - name: Create and push documentation
         run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@github.com
           pip3 install mkdocs
           
           cd mkdocs;
