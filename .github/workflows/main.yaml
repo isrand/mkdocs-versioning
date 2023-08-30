@@ -50,7 +50,7 @@ jobs:
           git pull origin page --allow-unrelated-histories
           git push --force
           
-          git pull origin main --allow-unrelated-histories
+          git pull origin development --allow-unrelated-histories
           git push --force
   publish-docs:
     needs: sync-page-branch
