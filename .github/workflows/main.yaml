@@ -116,7 +116,7 @@ jobs:
 
           git push --force
   release:
-    needs: bump-version
+    needs: [publish-docs, sync-development-branch]
     if: github.event.pull_request.merged == true
     environment:
       name: github-actions
