@@ -47,8 +47,8 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@github.com
 
-          git config pull.rebase true
           git pull origin main
+          git rebase --reapply-cherry-picks
 
           git push --force
   publish-docs:
@@ -113,6 +113,7 @@ jobs:
           git config user.email github-actions[bot]@github.com
 
           git pull origin main
+          git rebase --reapply-cherry-picks
 
           git push --force
   release:
