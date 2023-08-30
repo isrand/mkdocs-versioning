@@ -112,7 +112,6 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@github.com
 
-          git config pull.rebase true
           git pull origin main
 
           git push --force
