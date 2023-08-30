@@ -11,7 +11,31 @@ permissions:
   id-token: write
 
 jobs:
-  documentation:
+  sync-page-branch:
+    needs: bump-version
+    if: github.event.pull_request.merged == true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'page'
+          token: ${{ secrets.SYNC_TOKEN }}
+      - name: Synchronise "page" with latest version
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@github.com
+          git config pull.rebase false
+
+          git pull origin page --allow-unrelated-histories
+          git push --force
+
+          git pull origin development --allow-unrelated-histories
+          git push --force
+  publish-docs:
+    needs: sync-page-branch
     if: github.event.pull_request.merged == true
     environment:
       name: github-pages
@@ -26,19 +50,14 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@github.com
-          git config pull.rebase false
-
-          git pull origin development
-          git push --force
-
           pip3 install mkdocs
-
+          
           cd mkdocs;
           for val in $(mkdocs get-deps); do pip3 install $val; done
           cd ..
-
+          
           npm run buildDocs latest
-
+          
           git add mkdocs docs
           git commit -m "Update documentation page"
           git push --force
@@ -47,7 +66,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          # Upload entire repository
           path: './docs'
       - name: Deploy to GitHub Pages
         id: deployment
